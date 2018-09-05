@@ -23,7 +23,8 @@ int main(int argc, char const *argv[]) {
 	}
 
 	// make a socket
-	if ((sockFD = socket(results->ai_family, results->ai_socktype, results->ai_protocol)) < 0) {
+	if ((sockFD = socket(results->ai_family, results->ai_socktype,
+			results->ai_protocol)) < 0) {
 		perror("Error in socket (client)");
 		return (EXIT_FAILURE);
 	}
@@ -42,8 +43,8 @@ int main(int argc, char const *argv[]) {
 	send(sockFD, message, strlen(message), 0);
 
 	printf("Message sent from client\n");
-	valRead = read( sockFD , buffer, 1024);
-    printf("%s\n",buffer );
+	valRead = read(sockFD, buffer, 1024);
+	printf("%s\n", buffer);
 
 	return 0;
 }

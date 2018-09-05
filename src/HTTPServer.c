@@ -30,7 +30,8 @@ int main(int argc, char const *argv[]) {
 	}
 
 	// make a socket
-	if ((sockFD = socket(results->ai_family, results->ai_socktype, results->ai_protocol)) < 0) {
+	if ((sockFD = socket(results->ai_family, results->ai_socktype,
+			results->ai_protocol)) < 0) {
 		perror("Error in socket (server)");
 		return (EXIT_FAILURE);
 	}
@@ -48,25 +49,25 @@ int main(int argc, char const *argv[]) {
 	}
 
 	// accept incoming connections
-	while(1) {
+	while (1) {
 		clientAddressSize = sizeof(clientAddress);
 
-		if((newSocketFD = accept(sockFD, (struct sockaddr *) &clientAddress,
+		if ((newSocketFD = accept(sockFD, (struct sockaddr *) &clientAddress,
 				&clientAddressSize)) < 0) {
 			perror("Error in accept (server)");
 			exit(EXIT_FAILURE);
 		}
 
-
 		// testing connection
 		long valRead;
-		char buffer[30000] = {0};
+		char buffer[30000] = { 0 };
 		//char * message = "Hello From Server";
-        char *message = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
-		valRead = read( newSocketFD , buffer, 30000);
+		char *message =
+				"HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
+		valRead = read(newSocketFD, buffer, 30000);
 
-		printf("%s\n",buffer);
-		write(newSocketFD , message , strlen(message));
+		printf("%s\n", buffer);
+		write(newSocketFD, message, strlen(message));
 		printf("Message sent from server\n");
 		close(newSocketFD);
 	}
