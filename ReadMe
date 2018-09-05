@@ -9,3 +9,6 @@ To run the project:
 ./HTTPClient
 ---or---
 ./HTTPServer
+
+Leave HTTPServer running in a terminal window, and try to connect using client
+code in another terminal window.
