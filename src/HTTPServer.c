@@ -5,7 +5,7 @@ int main(int argc, char const *argv[]) {
 	const int backlog = 10; // how many pending connections the queue will hold
 
 	// TODO read from command line
-	char *portNum = "34905"; // the port users will be connecting to
+	char *portNum = "34908"; // the port users will be connecting to
 
 	struct sockaddr_storage clientAddress;
 	socklen_t clientAddressSize;
@@ -61,8 +61,8 @@ int main(int argc, char const *argv[]) {
 		// testing connection
 		long valRead;
 		char buffer[30000] = {0};
-		char * message = "Hello From Server";
-
+		//char * message = "Hello From Server";
+        char *message = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
 		valRead = read( newSocketFD , buffer, 30000);
 
 		printf("%s\n",buffer);
@@ -71,5 +71,6 @@ int main(int argc, char const *argv[]) {
 		close(newSocketFD);
 	}
 
+	// TODO free stuff
 	return 0;
 }
