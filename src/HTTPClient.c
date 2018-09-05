@@ -1,12 +1,4 @@
-//
-//  TCPClient.c
-//  SocketProgramming
-//
-//  Created by Kenneth Morton Jr on 9/3/18.
-//  Copyright © 2018 Kenneth Morton Jr. All rights reserved.
-//
-
-#include "TCPClient.h"
+#include "HTTPClient.h"
 
 int main(int argc, char const *argv[])
 {
@@ -15,7 +7,7 @@ int main(int argc, char const *argv[])
     long valRead;
     char buffer[1024] = {0};
     
-    // read this stuff in from command line args
+    // TODO eventually read this stuff in from command line args
     char *serverURL = "www.google.com";
     char *portNum = "80";
 
@@ -48,8 +40,5 @@ int main(int argc, char const *argv[])
 
     send(sockfd, message, strlen(message), 0);
     printf("Message sent to server\n");
-    //valread = read( sock , buffer, 1024);
-    //printf("%s\n",buffer );
     return 0;
 }
-

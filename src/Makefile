@@ -6,24 +6,24 @@ CC = gcc
 #  -Wall turns on most, but not all, compiler warnings
 CFLAGS = -g -Wall
 
-all: TCPClient TCPServer
+all: HTTPClient HTTPServer
 
-# rules for making TCPClient
-TCPClient: TCPClient.o
-	CC $(CFLAGS) TCPClient.o -o TCPClient
+# rules for making HTTPClient
+HTTPClient: HTTPClient.o
+	CC $(CFLAGS) HTTPClient.o -o HTTPClient
 
-TCPClient.o: TCPClient.c
-	CC $(CFLAGS) -c TCPClient.c
+HTTPClient.o: HTTPClient.c
+	CC $(CFLAGS) -c HTTPClient.c
 
-# rules for making TCPServer
-TCPServer: TCPServer.o
-	CC $(CFLAGS) TCPServer.o -o TCPServer
+# rules for making HTTPServer
+HTTPServer: HTTPServer.o
+	CC $(CFLAGS) HTTPServer.o -o HTTPServer
 
-TCPServer.o: TCPServer.c
-	CC $(CFLAGS) -c TCPServer.c
+HTTPServer.o: HTTPServer.c
+	CC $(CFLAGS) -c HTTPServer.c
 
 clean:
-	rm -f *.o $(all) TCPClient TCPServer
+	rm -f *.o $(all) HTTPClient HTTPServer
 	rm -f -r html latex
 
 # Give command "make docs" to create documentation.    
