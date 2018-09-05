@@ -1,6 +1,6 @@
-*** Project In-Progress***
+*** Project In-Progress ***
 
-This is an implementation of the HTTP 1.1 protocol.
+This is an implementation of the HTTP 1.1 protocol. It contains client and server code.
 
 To build the project:
 make all
