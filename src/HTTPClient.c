@@ -1,14 +1,10 @@
 #include "HTTPClient.h"
 
 int main(int argc, char const *argv[]) {
-	// for testing
-	char *message = "Hello from Client";
-	long valRead;
-	char buffer[1024] = { 0 };
 
 	// TODO eventually read this stuff in from command line args
-	char *serverURL = "www.google.com";
-	char *portNum = "80";
+	char *serverURL = "127.0.0.1";
+	char *portNum = "34905";
 
 	struct addrinfo hints;
 	struct addrinfo *results;
@@ -38,7 +34,16 @@ int main(int argc, char const *argv[]) {
 		return (EXIT_FAILURE);
 	}
 
+	// testing connection
+	char *message = "Hello from Client";
+	long valRead;
+	char buffer[1024] = { 0 };
+
 	send(sockFD, message, strlen(message), 0);
-	printf("Message sent to server\n");
+
+	printf("Message sent from client\n");
+	valRead = read( sockFD , buffer, 1024);
+    printf("%s\n",buffer );
+
 	return 0;
 }

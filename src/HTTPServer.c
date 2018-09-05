@@ -5,7 +5,7 @@ int main(int argc, char const *argv[]) {
 	const int backlog = 10; // how many pending connections the queue will hold
 
 	// TODO read from command line
-	char *portNum = "3490"; // the port users will be connecting to
+	char *portNum = "34905"; // the port users will be connecting to
 
 	struct sockaddr_storage clientAddress;
 	socklen_t clientAddressSize;
@@ -14,7 +14,7 @@ int main(int argc, char const *argv[]) {
 	struct addrinfo *results;
 	int sockFD;
 
-	int connectionFD;
+	int newSocketFD;
 
 	// first, load up address structs with getaddrinfo():
 	memset(&hints, 0, sizeof(hints));
@@ -41,19 +41,35 @@ int main(int argc, char const *argv[]) {
 		return (EXIT_FAILURE);
 	}
 
-	// liten
+	// listen
 	if (listen(sockFD, backlog) < 0) {
 		perror("Error in listen (server)");
 		return (EXIT_FAILURE);
 	}
 
-	// now accept an incoming connection:
-	clientAddressSize = sizeof(clientAddress);
-	connectionFD = accept(sockFD, (struct sockaddr *) &clientAddress,
-			&clientAddressSize);
+	// accept incoming connections
+	while(1) {
+		clientAddressSize = sizeof(clientAddress);
 
-	// ready to communicate on socket descriptor connectionFD
+		if((newSocketFD = accept(sockFD, (struct sockaddr *) &clientAddress,
+				&clientAddressSize)) < 0) {
+			perror("Error in accept (server)");
+			exit(EXIT_FAILURE);
+		}
 
-	printf("end of server");
+
+		// testing connection
+		long valRead;
+		char buffer[30000] = {0};
+		char * message = "Hello From Server";
+
+		valRead = read( newSocketFD , buffer, 30000);
+
+		printf("%s\n",buffer);
+		write(newSocketFD , message , strlen(message));
+		printf("Message sent from server\n");
+		close(newSocketFD);
+	}
+
 	return 0;
 }
