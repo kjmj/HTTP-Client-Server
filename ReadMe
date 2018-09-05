@@ -1,0 +1,11 @@
+*** Project In-Progress***
+
+This is an implementation of the HTTP 1.1 protocol.
+
+To build the project:
+make all
+
+To run the project:
+./HTTPClient
+---or---
+./HTTPServer
