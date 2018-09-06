@@ -5,7 +5,7 @@ int main(int argc, char const *argv[]) {
 	const int backlog = 10; // how many pending connections the queue will hold
 
 	// TODO read from command line
-	char *portNum = "34908"; // the port users will be connecting to
+	char *portNum = "34912"; // the port users will be connecting to
 
 	struct sockaddr_storage clientAddress;
 	socklen_t clientAddressSize;
@@ -18,7 +18,8 @@ int main(int argc, char const *argv[]) {
 
 	// first, load up address structs with getaddrinfo():
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC; // use IPv4 or IPv6, whichever
+	//hints.ai_family = AF_UNSPEC; // use IPv4 or IPv6
+	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE; // fill in my IP for me
 
@@ -62,8 +63,8 @@ int main(int argc, char const *argv[]) {
 		long valRead;
 		char buffer[30000] = { 0 };
 		//char * message = "Hello From Server";
-		char *message =
-				"HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
+		char *message = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
+
 		valRead = read(newSocketFD, buffer, 30000);
 
 		printf("%s\n", buffer);
