@@ -6,7 +6,7 @@ To build the project:
 make all
 
 To run the project:
-./HTTPClient
+./HTTPClient [-options] server_url port_number
 ---or---
 ./HTTPServer
 
