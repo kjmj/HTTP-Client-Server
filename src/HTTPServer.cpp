@@ -1,11 +1,13 @@
-#include "HTTPServer.h"
+#include "HTTPServer.hpp"
+using namespace std;
+
 
 int main(int argc, char const *argv[]) {
 
 	const int backlog = 10; // how many pending connections the queue will hold
 
 	// TODO read from command line
-	char *portNum = "34912"; // the port users will be connecting to
+	string portNum = "34912"; // the port users will be connecting to
 
 	struct sockaddr_storage clientAddress;
 	socklen_t clientAddressSize;
@@ -24,7 +26,7 @@ int main(int argc, char const *argv[]) {
 	hints.ai_flags = AI_PASSIVE; // fill in my IP for me
 
 	int status;
-	if ((status = getaddrinfo(NULL, portNum, &hints, &results)) != 0) {
+	if ((status = getaddrinfo(NULL, portNum.c_str(), &hints, &results)) != 0) {
 		fprintf(stderr, "Error in getaddrinfo (server): %s\n",
 				gai_strerror(status));
 		return (EXIT_FAILURE);
@@ -62,13 +64,13 @@ int main(int argc, char const *argv[]) {
 		// testing connection
 		long valRead;
 		char buffer[30000] = { 0 };
-		//char * message = "Hello From Server";
-		char *message = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
+		//string message = "Hello From Server";
+		string message = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
 
 		valRead = read(newSocketFD, buffer, 30000);
 
 		printf("%s\n", buffer);
-		write(newSocketFD, message, strlen(message));
+		write(newSocketFD, message.c_str(), message.length());
 		printf("Message sent from server\n");
 		close(newSocketFD);
 	}

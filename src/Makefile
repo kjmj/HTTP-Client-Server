@@ -1,31 +1,21 @@
-# the compiler: gcc for C program, define as g++ for C++
-CC = gcc
+ # the compiler: gcc for C program, define as g++ for C++
+ CC = g++
 
 # compiler flags:
 #  -g    adds debugging information to the executable file
 #  -Wall turns on most, but not all, compiler warnings
-CFLAGS = -g -Wall
+CFLAGS  = -Wall
 
-all: HTTPClient HTTPServer
+# the build target executable:
+TARGET = HTTPClient HTTPServer
 
-# rules for making HTTPClient
-HTTPClient: HTTPClient.o
-	CC $(CFLAGS) HTTPClient.o -o HTTPClient
+all: $(TARGET)
 
-HTTPClient.o: HTTPClient.c
-	CC $(CFLAGS) -c HTTPClient.c
-
-# rules for making HTTPServer
-HTTPServer: HTTPServer.o
-	CC $(CFLAGS) HTTPServer.o -o HTTPServer
-
-HTTPServer.o: HTTPServer.c
-	CC $(CFLAGS) -c HTTPServer.c
+HTTPClient: HTTPClient.cpp
+	$(CC) $(CFLAGS) -o HTTPClient HTTPClient.cpp
+	
+HTTPServer: HTTPServer.cpp
+	$(CC) $(CFLAGS) -o HTTPServer HTTPServer.cpp	
 
 clean:
-	rm -f *.o $(all) HTTPClient HTTPServer
-	rm -f -r html latex
-
-# Give command "make docs" to create documentation.    
-docs:
-	doxygen
+	$(RM) $(TARGET)

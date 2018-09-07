@@ -1,9 +1,11 @@
-#include "HTTPClient.h"
+#include "HTTPClient.hpp"
+
+using namespace std;
 
 int main(int argc, char *argv[]) {
 
-	char *serverURL;
-	char *portNum;
+	string serverURL;
+	string portNum;
 	bool computeRTT;
 
 	// read in command line args
@@ -20,8 +22,10 @@ int main(int argc, char *argv[]) {
 		return (EXIT_FAILURE);
 	}
 
-	char *hostName = parseAddress(serverURL);
-	char *pathName = parsePath(serverURL);
+	string hostName = parseAddress(serverURL);
+	cout << hostName << "\n";
+	string pathName = parsePath(serverURL);
+
 
 	const int bufferSize = 1; // TODO buffer size, does it matter?
 	char buffer[bufferSize] = { 0 };
@@ -40,7 +44,8 @@ int main(int argc, char *argv[]) {
 	hints.ai_socktype = SOCK_STREAM;
 
 	int status;
-	if ((status = getaddrinfo(hostName, portNum, &hints, &results)) != 0) {
+	if ((status = getaddrinfo(hostName.c_str(), portNum.c_str(), &hints,
+			&results)) != 0) {
 		fprintf(stderr, "Error in getaddrinfo (client): %s\n",
 				gai_strerror(status));
 		return (EXIT_FAILURE);
@@ -59,19 +64,11 @@ int main(int argc, char *argv[]) {
 		return (EXIT_FAILURE);
 	}
 
+	cout << "connected" << "\n";
 
-	// try to send GET request
-	strncat(hostName, pathName, strlen(hostName) + strlen(pathName) + 1);
-	printf("%s\n", hostName);
-
-
-
-	char *GET = "GET / HTTP/1.1\r\n"
-			"Host: 127.0.0.1\r\n"
-			"Connection: close\r\n"
-			"\r\n";
-
-	send(sockFD, GET, strlen(GET), 0);
+	string GET = formGET(hostName, pathName);
+	cout << GET << "\n";
+	send(sockFD, GET.c_str(), GET.length(), 0);
 	printf("Request sent from client\n");
 
 	while (recv(sockFD, buffer, bufferSize, 0) > 0) {
@@ -84,38 +81,37 @@ int main(int argc, char *argv[]) {
 	return 0;
 }
 
+string formGET(string hostName, string pathName) {
+	string GET = "GET /";
+	GET = GET.append(pathName);
+	GET = GET.append(" HTTP/1.1\r\n");
 
-// TODO this wont parse an address with a "/" before the path
-// for example http://www.google.com/path
-char *parseAddress(char *toParse) {
-	char *path = strstr(toParse, "/");
+	GET = GET.append("Host: ");
+	GET = GET.append(hostName);
+	GET = GET.append("\r\n");
 
-	if(path == NULL) {
-		return toParse;
-	}
+	GET = GET.append("Connection: close\r\n");
+	GET = GET.append("\r\n");
 
-	int diff = path - toParse;
+	return GET;
 
-	char *address = (char *) malloc(strlen(toParse) + 1);
-	strncpy(address, toParse, diff);
-
-	return address;
+}
+// enter an address in the form www.example.com/path/to/whatever
+// and the function returns example.com
+string parseAddress(string toParse) {
+	return toParse.substr(4, toParse.find("/") - 4);
 }
 
 /**
  * returns the path part of a url
  */
-char *parsePath(char *toParse) {
+string parsePath(string toParse) {
+	int pos = toParse.find("/");
 
-    char *parsed = strstr(toParse, "/");
+	if(pos == string::npos) {
+		return "";
+	}
 
-    if(parsed == NULL) {
-    	return "";
-    }
-
-    char *withoutForwardSlash = (char*) malloc(strlen(parsed) + 1);
-    strncpy(withoutForwardSlash, parsed + 1, strlen(parsed) - 1);
-
-    return withoutForwardSlash;
+	return toParse.substr(pos + 1); // everything after "/"
 }
 
