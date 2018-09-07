@@ -4,9 +4,9 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 
+	bool computeRTT;
 	string serverURL;
 	string portNum;
-	bool computeRTT;
 
 	// read in command line args
 	if (argc == 3) {
@@ -18,14 +18,14 @@ int main(int argc, char *argv[]) {
 		serverURL = argv[2];
 		portNum = argv[3];
 	} else {
-		printf("USAGE: ./HTTPClient [-options] server_url port_number\n");
+		cout << "USAGE: ./HTTPClient [-options] server_url port_number" << endl;
 		return (EXIT_FAILURE);
 	}
 
 	string hostName = parseAddress(serverURL);
-	cout << hostName << "\n";
 	string pathName = parsePath(serverURL);
-
+	cout << hostName <<endl;
+	cout << pathName <<endl;
 
 	const int bufferSize = 1; // TODO buffer size, does it matter?
 	char buffer[bufferSize] = { 0 };
@@ -46,8 +46,7 @@ int main(int argc, char *argv[]) {
 	int status;
 	if ((status = getaddrinfo(hostName.c_str(), portNum.c_str(), &hints,
 			&results)) != 0) {
-		fprintf(stderr, "Error in getaddrinfo (client): %s\n",
-				gai_strerror(status));
+		cout << stderr << "Error in getaddrinfo (client): " << gai_strerror(status) << endl;
 		return (EXIT_FAILURE);
 	}
 
@@ -64,12 +63,11 @@ int main(int argc, char *argv[]) {
 		return (EXIT_FAILURE);
 	}
 
-	cout << "connected" << "\n";
-
 	string GET = formGET(hostName, pathName);
-	cout << GET << "\n";
+	cout << GET << endl;
+
 	send(sockFD, GET.c_str(), GET.length(), 0);
-	printf("Request sent from client\n");
+	cout << "Request sent from client" << endl;
 
 	while (recv(sockFD, buffer, bufferSize, 0) > 0) {
 		fputs(buffer, stdout);
@@ -86,7 +84,7 @@ string formGET(string hostName, string pathName) {
 	GET = GET.append(pathName);
 	GET = GET.append(" HTTP/1.1\r\n");
 
-	GET = GET.append("Host: ");
+	GET = GET.append("Host: www.");
 	GET = GET.append(hostName);
 	GET = GET.append("\r\n");
 
