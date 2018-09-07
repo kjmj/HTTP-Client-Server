@@ -22,8 +22,6 @@ int main(int argc, char *argv[]) {
 
 	char *hostName = parseAddress(serverURL);
 	char *pathName = parsePath(serverURL);
-	char *GETtest = formGET(hostName, pathName);
-	printf("%s\n", GETtest);
 
 	const int bufferSize = 1; // TODO buffer size, does it matter?
 	char buffer[bufferSize] = { 0 };
@@ -121,9 +119,3 @@ char *parsePath(char *toParse) {
     return withoutForwardSlash;
 }
 
-char *formGETRequest(char *hostName, char *pathName) {
-
-
-
-	return NULL;
-}
