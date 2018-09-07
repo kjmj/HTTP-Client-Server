@@ -65,6 +65,7 @@ int main(int argc, char *argv[]) {
 	send(sockFD, GET, strlen(GET), 0);
 	printf("Request sent from client\n");
 
+
 	while (recv(sockFD, buffer, bufferSize, 0) > 0) {
 		fputs(buffer, stdout);
 		memset(buffer, 0, bufferSize);
