@@ -5,12 +5,6 @@ int main(int argc, char *argv[]) {
 	char *serverURL;
 	char *portNum;
 	bool computeRTT;
-	const int bufferSize = 1; // TODO buffer size?
-	char buffer[bufferSize] = { 0 };
-
-	struct addrinfo hints;
-	struct addrinfo *results;
-	int sockFD;
 
 	// read in command line args
 	if (argc == 3) {
@@ -25,18 +19,30 @@ int main(int argc, char *argv[]) {
 		printf("USAGE: ./HTTPClient [-options] server_url port_number\n");
 		return (EXIT_FAILURE);
 	}
+
+	char *hostName = parseAddress(serverURL);
+	char *pathName = parsePath(serverURL);
+	char *GETtest = formGET(hostName, pathName);
+	printf("%s\n", GETtest);
+
+	const int bufferSize = 1; // TODO buffer size, does it matter?
+	char buffer[bufferSize] = { 0 };
+
+	struct addrinfo hints;
+	struct addrinfo *results;
+	int sockFD;
+
 	// localhost: "127.0.0.1";
 
 	// first, load up address structs with getaddrinfo():
 	memset(&hints, 0, sizeof(hints));
 
-	// TODO UNSPEC or INET
 	hints.ai_family = AF_UNSPEC; // use IPv4 or IPv6
-	//hints.ai_family = AF_INET;
+	//hints.ai_family = AF_INET; // TODO can i use AF_UNSPEC?
 	hints.ai_socktype = SOCK_STREAM;
 
 	int status;
-	if ((status = getaddrinfo(serverURL, portNum, &hints, &results)) != 0) {
+	if ((status = getaddrinfo(hostName, portNum, &hints, &results)) != 0) {
 		fprintf(stderr, "Error in getaddrinfo (client): %s\n",
 				gai_strerror(status));
 		return (EXIT_FAILURE);
@@ -55,16 +61,20 @@ int main(int argc, char *argv[]) {
 		return (EXIT_FAILURE);
 	}
 
-	// testing connection
+
+	// try to send GET request
+	strncat(hostName, pathName, strlen(hostName) + strlen(pathName) + 1);
+	printf("%s\n", hostName);
+
+
 
 	char *GET = "GET / HTTP/1.1\r\n"
-			"Host: www.example.com\r\n"
+			"Host: 127.0.0.1\r\n"
 			"Connection: close\r\n"
 			"\r\n";
 
 	send(sockFD, GET, strlen(GET), 0);
 	printf("Request sent from client\n");
-
 
 	while (recv(sockFD, buffer, bufferSize, 0) > 0) {
 		fputs(buffer, stdout);
@@ -76,3 +86,44 @@ int main(int argc, char *argv[]) {
 	return 0;
 }
 
+
+// TODO this wont parse an address with a "/" before the path
+// for example http://www.google.com/path
+char *parseAddress(char *toParse) {
+	char *path = strstr(toParse, "/");
+
+	if(path == NULL) {
+		return toParse;
+	}
+
+	int diff = path - toParse;
+
+	char *address = (char *) malloc(strlen(toParse) + 1);
+	strncpy(address, toParse, diff);
+
+	return address;
+}
+
+/**
+ * returns the path part of a url
+ */
+char *parsePath(char *toParse) {
+
+    char *parsed = strstr(toParse, "/");
+
+    if(parsed == NULL) {
+    	return "";
+    }
+
+    char *withoutForwardSlash = (char*) malloc(strlen(parsed) + 1);
+    strncpy(withoutForwardSlash, parsed + 1, strlen(parsed) - 1);
+
+    return withoutForwardSlash;
+}
+
+char *formGETRequest(char *hostName, char *pathName) {
+
+
+
+	return NULL;
+}

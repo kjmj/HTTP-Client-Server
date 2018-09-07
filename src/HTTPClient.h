@@ -11,4 +11,8 @@
 #include <netdb.h>
 #include <stdbool.h>
 
+char *parseAddress(char *toParse);
+char *parsePath(char *toParse);
+char *formGET(char *hostName, char *pathName);
+
 #endif
