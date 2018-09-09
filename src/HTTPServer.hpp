@@ -17,5 +17,6 @@
 #include <sys/types.h>
 
 std::string extractPath(std::string httpGET);
+void sendResponse(int newSockFD, std::string path);
 
 #endif

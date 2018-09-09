@@ -110,11 +110,12 @@ int main(int argc, char const *argv[]) {
 
 		cout << entireBuffer << endl;
 		cout << entireBuffer.length() << endl;
+		string path = extractPath(entireBuffer);
+		cout << "Path: " << path << endl;
 
-		cout << "Path: " << extractPath(entireBuffer) << endl;
+		sendResponse(newSockFD, path);
 
-
-		write(newSockFD, message.c_str(), message.length());
+		//write(newSockFD, message.c_str(), message.length());
 		printf("Message sent from server\n");
 		close(newSockFD);
 	}
@@ -123,29 +124,58 @@ int main(int argc, char const *argv[]) {
 	return 0;
 }
 
+// extract the requested path from the http get request
 string extractPath(string httpGET) {
 
 	istringstream iss(httpGET);
 	string token;
 
-	while(getline(iss, token)) {
+	while (getline(iss, token)) {
 
 		int pos = token.find("GET ");
-		if(pos == 0) {
+		if (pos == 0) {
 			//cout << "Found get" << endl;
 			string firstDelim = "GET ";
 			string stopDelim = " HTTP/1.1";
-		    unsigned firstDelimPos = token.find(firstDelim);
-		    unsigned endOfFirstDelim = firstDelimPos + firstDelim.length();
-		    unsigned lastDelimPos = token.find(stopDelim);
+			unsigned firstDelimPos = token.find(firstDelim) + 1;
+			unsigned endOfFirstDelim = firstDelimPos + firstDelim.length();
+			unsigned lastDelimPos = token.find(stopDelim);
 
-		    return token.substr(endOfFirstDelim, lastDelimPos - endOfFirstDelim);
-
-
+			return token.substr(endOfFirstDelim, lastDelimPos - endOfFirstDelim);
 		}
-
-
 	}
-	return "/";
+	return "";
+}
 
+void sendResponse(int newSockFD, string path) {
+	string message;
+	int pos = path.find_last_of("/");
+	string fileName;
+
+	cout << "POS: " <<  pos << endl;
+	if (path.length() >= pos + 1) {
+		fileName = path.substr(pos + 1);
+	}
+	cout << "got file name successfully: " << fileName  << endl;
+
+
+
+	  if (access(fileName.c_str(), F_OK) == 0 && access(fileName.c_str(), R_OK) == 0) {
+		  // file exists and has read access
+		  cout << "file found with read access" << endl;
+		  const int bufferSize = 1024; // TODO buffer size, does it matter?
+		  		char buffer[bufferSize] = { 0 };
+
+		  		FILE *file = fopen(fileName.c_str(), "r");
+
+		  		while (fgets(buffer, bufferSize, file)) {
+		  			send(newSockFD, buffer, strlen(buffer), 0);
+		  			memset(buffer, 0, bufferSize);
+		  		}
+	  }
+	  else {
+		  cout << "File does not exist" << endl;
+		  message = "HTTP/1.1 404 Not Found\nContent-Type: text/plain\n";
+		  		write(newSockFD, message.c_str(), message.length());
+	  }
 }
