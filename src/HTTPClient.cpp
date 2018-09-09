@@ -24,8 +24,8 @@ int main(int argc, char *argv[]) {
 
 	string hostName = parseAddress(serverURL);
 	string pathName = parsePath(serverURL);
-	cout << hostName <<endl;
-	cout << pathName <<endl;
+	cout << "Host Name: " << hostName <<endl;
+	cout << "Path Name: " << pathName <<endl;
 
 	const int bufferSize = 1; // TODO buffer size, does it matter?
 	char buffer[bufferSize] = { 0 };
@@ -84,12 +84,14 @@ string formGET(string hostName, string pathName) {
 	GET = GET.append(pathName);
 	GET = GET.append(" HTTP/1.1\r\n");
 
-	GET = GET.append("Host: www.");
+	GET = GET.append("Host: ");
 	GET = GET.append(hostName);
 	GET = GET.append("\r\n");
 
 	GET = GET.append("Connection: close\r\n");
 	GET = GET.append("\r\n");
+
+
 
 	return GET;
 
@@ -97,7 +99,7 @@ string formGET(string hostName, string pathName) {
 // enter an address in the form www.example.com/path/to/whatever
 // and the function returns example.com
 string parseAddress(string toParse) {
-	return toParse.substr(4, toParse.find("/") - 4);
+	return toParse.substr(0, toParse.find("/"));
 }
 
 /**
@@ -112,4 +114,5 @@ string parsePath(string toParse) {
 
 	return toParse.substr(pos + 1); // everything after "/"
 }
+
 

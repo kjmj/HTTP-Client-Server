@@ -1,13 +1,12 @@
 #include "HTTPServer.hpp"
 using namespace std;
 
-
 int main(int argc, char const *argv[]) {
 
 	const int backlog = 10; // how many pending connections the queue will hold
 
 	// TODO read from command line
-	string portNum = "34912"; // the port users will be connecting to
+	string portNum = argv[1]; // the port users will be connecting to
 
 	struct sockaddr_storage clientAddress;
 	socklen_t clientAddressSize;
@@ -16,7 +15,7 @@ int main(int argc, char const *argv[]) {
 	struct addrinfo *results;
 	int sockFD;
 
-	int newSocketFD;
+	int newSockFD;
 
 	// first, load up address structs with getaddrinfo():
 	memset(&hints, 0, sizeof(hints));
@@ -27,8 +26,8 @@ int main(int argc, char const *argv[]) {
 
 	int status;
 	if ((status = getaddrinfo(NULL, portNum.c_str(), &hints, &results)) != 0) {
-		fprintf(stderr, "Error in getaddrinfo (server): %s\n",
-				gai_strerror(status));
+		cout << stderr << "Error in getaddrinfo (server): "
+				<< gai_strerror(status) << endl;
 		return (EXIT_FAILURE);
 	}
 
@@ -55,7 +54,7 @@ int main(int argc, char const *argv[]) {
 	while (1) {
 		clientAddressSize = sizeof(clientAddress);
 
-		if ((newSocketFD = accept(sockFD, (struct sockaddr *) &clientAddress,
+		if ((newSockFD = accept(sockFD, (struct sockaddr *) &clientAddress,
 				&clientAddressSize)) < 0) {
 			perror("Error in accept (server)");
 			exit(EXIT_FAILURE);
@@ -63,18 +62,90 @@ int main(int argc, char const *argv[]) {
 
 		// testing connection
 		long valRead;
-		char buffer[30000] = { 0 };
+
+		const int bufferSize = 1024; // TODO buffer size, does it matter?
+		char buffer[bufferSize] = { 0 };
+
 		//string message = "Hello From Server";
-		string message = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
+		string message =
+				"HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
 
-		valRead = read(newSocketFD, buffer, 30000);
+		int recvd;
+		string entireBuffer;
+		if (recv(newSockFD, buffer, bufferSize, 0) < 0) { // TODO make this more robust
+			perror("Error in read (server)");
+			exit(EXIT_FAILURE);
+		}
+		entireBuffer = buffer;
 
-		printf("%s\n", buffer);
-		write(newSocketFD, message.c_str(), message.length());
+//		while ((recvd = recv(newSockFD, buffer, bufferSize, 0)) > 0) {
+//
+//			entireBuffer.append(buffer);
+//			//cout << entireBuffer << endl;
+//			cout << entireBuffer.length() << endl;
+//
+//
+////			if(entireBuffer.find('\r\n\r\n')) {
+////				cout << "end of HTTP request" << endl;
+////				//break;
+////			}
+//
+////			if(strstr(entireBuffer.c_str(), "\r\n\r\n")) {
+////
+////				cout << "FOUND IT Eh" << endl;
+////				break;
+////			}
+//
+////			if(entireBuffer.length() > 4) {
+////				if((entireBuffer.substr( entireBuffer.length() - 4 )) == "\r\n\r\n") {
+////					cout << "Found it" << endl;
+////					break;
+////				}
+////			}
+//
+//			//fputs(buffer, stdout);
+//			memset(buffer, 0, bufferSize);
+//			//cout << "Bytes: " << recvd << endl;
+//		}
+
+		cout << entireBuffer << endl;
+		cout << entireBuffer.length() << endl;
+
+		cout << "Path: " << extractPath(entireBuffer) << endl;
+
+
+		write(newSockFD, message.c_str(), message.length());
 		printf("Message sent from server\n");
-		close(newSocketFD);
+		close(newSockFD);
 	}
 
 	// TODO free stuff
 	return 0;
+}
+
+string extractPath(string httpGET) {
+
+	istringstream iss(httpGET);
+	string token;
+
+	while(getline(iss, token)) {
+
+		int pos = token.find("GET ");
+		if(pos == 0) {
+			//cout << "Found get" << endl;
+			string firstDelim = "GET ";
+			string stopDelim = " HTTP/1.1";
+		    unsigned firstDelimPos = token.find(firstDelim);
+		    unsigned endOfFirstDelim = firstDelimPos + firstDelim.length();
+		    unsigned lastDelimPos = token.find(stopDelim);
+
+		    return token.substr(endOfFirstDelim, lastDelimPos - endOfFirstDelim);
+
+
+		}
+
+
+	}
+	return "/";
+
 }

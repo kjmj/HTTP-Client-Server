@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include <string>
 #include<iostream>
+#include <sstream>
+
 
 #include <unistd.h>
 #include <netdb.h>
@@ -14,5 +16,6 @@
 #include <arpa/inet.h>
 #include <sys/types.h>
 
+std::string extractPath(std::string httpGET);
 
 #endif
