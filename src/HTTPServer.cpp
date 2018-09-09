@@ -3,10 +3,12 @@ using namespace std;
 
 int main(int argc, char const *argv[]) {
 
-	const int backlog = 10; // how many pending connections the queue will hold
-
-	// TODO read from command line
+	if (argc != 2) {
+		cout << "USAGE: ./HTTPServer port_number" << endl;
+		return (EXIT_FAILURE);
+	}
 	string portNum = argv[1]; // the port users will be connecting to
+	const int backlog = 10; // how many pending connections the queue will hold
 
 	struct sockaddr_storage clientAddress;
 	socklen_t clientAddressSize;
@@ -14,15 +16,14 @@ int main(int argc, char const *argv[]) {
 	struct addrinfo hints;
 	struct addrinfo *results;
 	int sockFD;
-
-	int newSockFD;
+	int newSockFD; // for when the client connects
 
 	// first, load up address structs with getaddrinfo():
 	memset(&hints, 0, sizeof(hints));
-	//hints.ai_family = AF_UNSPEC; // use IPv4 or IPv6
-	hints.ai_family = AF_INET;
+	hints.ai_family = AF_UNSPEC; // use IPv4 or IPv6
+	//hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE; // fill in my IP for me
+	hints.ai_flags = AI_PASSIVE; // use my IP
 
 	int status;
 	if ((status = getaddrinfo(NULL, portNum.c_str(), &hints, &results)) != 0) {
@@ -51,7 +52,7 @@ int main(int argc, char const *argv[]) {
 	}
 
 	// accept incoming connections
-	while (1) {
+	while (true) {
 		clientAddressSize = sizeof(clientAddress);
 
 		if ((newSockFD = accept(sockFD, (struct sockaddr *) &clientAddress,
@@ -60,17 +61,9 @@ int main(int argc, char const *argv[]) {
 			exit(EXIT_FAILURE);
 		}
 
-		// testing connection
-		long valRead;
-
-		const int bufferSize = 1024; // TODO buffer size, does it matter?
+		const int bufferSize = 1024;
 		char buffer[bufferSize] = { 0 };
 
-		//string message = "Hello From Server";
-		string message =
-				"HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
-
-		int recvd;
 		string entireBuffer;
 		if (recv(newSockFD, buffer, bufferSize, 0) < 0) { // TODO make this more robust
 			perror("Error in read (server)");
@@ -78,44 +71,12 @@ int main(int argc, char const *argv[]) {
 		}
 		entireBuffer = buffer;
 
-//		while ((recvd = recv(newSockFD, buffer, bufferSize, 0)) > 0) {
-//
-//			entireBuffer.append(buffer);
-//			//cout << entireBuffer << endl;
-//			cout << entireBuffer.length() << endl;
-//
-//
-////			if(entireBuffer.find('\r\n\r\n')) {
-////				cout << "end of HTTP request" << endl;
-////				//break;
-////			}
-//
-////			if(strstr(entireBuffer.c_str(), "\r\n\r\n")) {
-////
-////				cout << "FOUND IT Eh" << endl;
-////				break;
-////			}
-//
-////			if(entireBuffer.length() > 4) {
-////				if((entireBuffer.substr( entireBuffer.length() - 4 )) == "\r\n\r\n") {
-////					cout << "Found it" << endl;
-////					break;
-////				}
-////			}
-//
-//			//fputs(buffer, stdout);
-//			memset(buffer, 0, bufferSize);
-//			//cout << "Bytes: " << recvd << endl;
-//		}
-
-		cout << entireBuffer << endl;
-		cout << entireBuffer.length() << endl;
-		string path = extractPath(entireBuffer);
+		string path = extractPathFromGET(entireBuffer);
 		cout << "Path: " << path << endl;
 
-		sendResponse(newSockFD, path);
+		sendResponseToGET(newSockFD, path);
+		//memset(buffer, 0, bufferSize);
 
-		//write(newSockFD, message.c_str(), message.length());
 		printf("Message sent from server\n");
 		close(newSockFD);
 	}
@@ -124,8 +85,8 @@ int main(int argc, char const *argv[]) {
 	return 0;
 }
 
-// extract the requested path from the http get request
-string extractPath(string httpGET) {
+// extract the requested path from the http GET request
+string extractPathFromGET(string httpGET) {
 
 	istringstream iss(httpGET);
 	string token;
@@ -147,35 +108,61 @@ string extractPath(string httpGET) {
 	return "";
 }
 
-void sendResponse(int newSockFD, string path) {
-	string message;
-	int pos = path.find_last_of("/");
-	string fileName;
+// send a response to the GET request
+void sendResponseToGET(int newSockFD, string path) {
+	string header;
+	string endOfResponse = "\r\n\r\n";
 
-	cout << "POS: " <<  pos << endl;
-	if (path.length() >= pos + 1) {
-		fileName = path.substr(pos + 1);
+	//string fileName = getFileName(path);
+	//cout << "FileName: " << fileName << endl;
+
+	if (access(path.c_str(), F_OK) != 0) {
+		cout << "Resource does not exist" << endl;
+		header = "HTTP/1.1 404 Not Found\r\n"
+				 "Content-Type: text/html; charset=UTF-8\r\n\r\n"
+				 "The resource does not exist. Please make sure the path/filename is specified correctly\r\n\r\n";
+
+		write(newSockFD, header.c_str(), header.length());
+	} else if (access(path.c_str(), R_OK) != 0) {
+		cout << "Path exists without read access" << endl;
+		header = "HTTP/1.1 403 Forbidden\r\n"
+				 "Content-Type: text/html; charset=UTF-8\r\n\r\n"
+				 "The resource exists, but we dont have read access\r\n\r\n";
+
+		write(newSockFD, header.c_str(), header.length());
+	} else if (access(path.c_str(), F_OK) == 0
+			&& access(path.c_str(), R_OK) == 0) {
+		cout << "Path exists with read access" << endl;
+		header = "HTTP/1.1 200 OK\r\n\r\n";
+		write(newSockFD, header.c_str(), header.length());
+
+		// open and send the file
+		const int bufferSize = 1024;
+		char buffer[bufferSize] = { 0 };
+
+		FILE *file = fopen(path.c_str(), "r");
+		while (fgets(buffer, bufferSize, file)) {
+			send(newSockFD, buffer, strlen(buffer), 0);
+			memset(buffer, 0, bufferSize);
+		}
+
+		write(newSockFD, endOfResponse.c_str(), endOfResponse.length());
 	}
-	cout << "got file name successfully: " << fileName  << endl;
+}
 
+// get the file name from a path
+// path must be specified as "path/to/the/file.txt"
+string getFileName(string fromPath) {
 
+	string fileName;
+	int pos = fromPath.find_last_of("/");
 
-	  if (access(fileName.c_str(), F_OK) == 0 && access(fileName.c_str(), R_OK) == 0) {
-		  // file exists and has read access
-		  cout << "file found with read access" << endl;
-		  const int bufferSize = 1024; // TODO buffer size, does it matter?
-		  		char buffer[bufferSize] = { 0 };
+	// the path is the file name
+	if (pos == string::npos) {
+		fileName = fromPath;
+	} else if (fromPath.length() >= pos + 1) {
+		fileName = fromPath.substr(pos + 1);
+	}
 
-		  		FILE *file = fopen(fileName.c_str(), "r");
-
-		  		while (fgets(buffer, bufferSize, file)) {
-		  			send(newSockFD, buffer, strlen(buffer), 0);
-		  			memset(buffer, 0, bufferSize);
-		  		}
-	  }
-	  else {
-		  cout << "File does not exist" << endl;
-		  message = "HTTP/1.1 404 Not Found\nContent-Type: text/plain\n";
-		  		write(newSockFD, message.c_str(), message.length());
-	  }
+	return fileName;
 }

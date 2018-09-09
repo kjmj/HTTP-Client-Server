@@ -16,7 +16,8 @@
 #include <arpa/inet.h>
 #include <sys/types.h>
 
-std::string extractPath(std::string httpGET);
-void sendResponse(int newSockFD, std::string path);
+std::string extractPathFromGET(std::string httpGET);
+void sendResponseToGET(int newSockFD, std::string path);
+std::string getFileName(std::string fromPath);
 
 #endif

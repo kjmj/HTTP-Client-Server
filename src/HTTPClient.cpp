@@ -87,11 +87,7 @@ string formGET(string hostName, string pathName) {
 	GET = GET.append("Host: ");
 	GET = GET.append(hostName);
 	GET = GET.append("\r\n");
-
-	GET = GET.append("Connection: close\r\n");
 	GET = GET.append("\r\n");
-
-
 
 	return GET;
 
