@@ -120,14 +120,14 @@ void sendResponseToGET(int newSockFD, string path) {
 		cout << "Resource does not exist" << endl;
 		header = "HTTP/1.1 404 Not Found\r\n"
 				 "Content-Type: text/html; charset=UTF-8\r\n\r\n"
-				 "The resource does not exist. Please make sure the path/filename is specified correctly\r\n\r\n";
+				 "HTTP 404 Not Found. The resource does not exist.\r\n\r\n";
 
 		write(newSockFD, header.c_str(), header.length());
 	} else if (access(path.c_str(), R_OK) != 0) {
 		cout << "Path exists without read access" << endl;
 		header = "HTTP/1.1 403 Forbidden\r\n"
 				 "Content-Type: text/html; charset=UTF-8\r\n\r\n"
-				 "The resource exists, but we dont have read access\r\n\r\n";
+				 "HTTP 403 Forbidden. The resource exists, but access is forbidden.\r\n\r\n";
 
 		write(newSockFD, header.c_str(), header.length());
 	} else if (access(path.c_str(), F_OK) == 0
