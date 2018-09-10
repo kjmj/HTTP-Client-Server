@@ -155,7 +155,7 @@ void sendResponseToGET(int newSockFD, string path) {
 string getFileName(string fromPath) {
 
 	string fileName;
-	int pos = fromPath.find_last_of("/");
+	unsigned int pos = fromPath.find_last_of("/");
 
 	// the path is the file name
 	if (pos == string::npos) {

@@ -102,7 +102,7 @@ string parseAddress(string toParse) {
  * returns the path part of a url
  */
 string parsePath(string toParse) {
-	int pos = toParse.find("/");
+	unsigned int pos = toParse.find("/");
 
 	if(pos == string::npos) {
 		return "";
