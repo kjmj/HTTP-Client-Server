@@ -3,20 +3,27 @@ using namespace std;
 
 int main(int argc, char const *argv[]) {
 
+	// process command line args
 	if (argc != 2) {
-		cout << "USAGE: ./HTTPServer port_number" << endl;
+		cout << "USAGE: ./HTTPServer portNumber" << endl;
 		return (EXIT_FAILURE);
 	}
+
+	// used to build our socket
+	struct addrinfo hints;
+	struct addrinfo *results;
+	int sockFD;
+	int newSockFD; // assigned when the client connects
+
 	string portNum = argv[1]; // the port users will be connecting to
 	const int backlog = 10; // how many pending connections the queue will hold
 
 	struct sockaddr_storage clientAddress;
-	socklen_t clientAddressSize;
+	socklen_t clientAddressSize = sizeof(clientAddress);
 
-	struct addrinfo hints;
-	struct addrinfo *results;
-	int sockFD;
-	int newSockFD; // for when the client connects
+	// for receiving client requests
+	const int bufferSize = 1024;
+	char buffer[bufferSize] = { 0 };
 
 	// first, load up address structs with getaddrinfo():
 	memset(&hints, 0, sizeof(hints));
@@ -53,7 +60,6 @@ int main(int argc, char const *argv[]) {
 
 	// accept incoming connections
 	while (true) {
-		clientAddressSize = sizeof(clientAddress);
 
 		if ((newSockFD = accept(sockFD, (struct sockaddr *) &clientAddress,
 				&clientAddressSize)) < 0) {
@@ -61,23 +67,19 @@ int main(int argc, char const *argv[]) {
 			exit(EXIT_FAILURE);
 		}
 
-		const int bufferSize = 1024;
-		char buffer[bufferSize] = { 0 };
-
-		string entireBuffer;
+		string GETRequest;
 		if (recv(newSockFD, buffer, bufferSize, 0) < 0) { // TODO make this more robust
 			perror("Error in read (server)");
 			exit(EXIT_FAILURE);
 		}
-		entireBuffer = buffer;
+		GETRequest = buffer;
 
-		string path = extractPathFromGET(entireBuffer);
+		string path = parsePathFromGETRequest(GETRequest);
 		cout << "Path: " << path << endl;
 
-		sendResponseToGET(newSockFD, path);
+		sendGETResponse(newSockFD, path);
 		//memset(buffer, 0, bufferSize);
 
-		printf("Message sent from server\n");
 		close(newSockFD);
 	}
 
@@ -85,75 +87,103 @@ int main(int argc, char const *argv[]) {
 	return 0;
 }
 
-// extract the requested path from the http GET request
-string extractPathFromGET(string httpGET) {
+/**
+ * returns the path from the HTTP GET request
+ * the extracted path does not include a leading "/"
+ *
+ */
+string parsePathFromGETRequest(string httpGETRequest) {
 
-	istringstream iss(httpGET);
-	string token;
+	istringstream iss(httpGETRequest);
+	string line;
 
-	while (getline(iss, token)) {
+	// read line by line
+	while (getline(iss, line)) {
 
-		int pos = token.find("GET ");
+		int pos = line.find("GET ");
 		if (pos == 0) {
-			//cout << "Found get" << endl;
 			string firstDelim = "GET ";
 			string stopDelim = " HTTP/1.1";
-			unsigned firstDelimPos = token.find(firstDelim) + 1;
+			unsigned firstDelimPos = line.find(firstDelim) + 1;
 			unsigned endOfFirstDelim = firstDelimPos + firstDelim.length();
-			unsigned lastDelimPos = token.find(stopDelim);
+			unsigned lastDelimPos = line.find(stopDelim);
 
-			return token.substr(endOfFirstDelim, lastDelimPos - endOfFirstDelim);
+			// get the path
+			return line.substr(endOfFirstDelim, lastDelimPos - endOfFirstDelim);
 		}
 	}
+
+	// otherwise, there was no path specified
 	return "";
 }
 
-// send a response to the GET request
-void sendResponseToGET(int newSockFD, string path) {
+/**
+ * send a response to the GET request
+ */
+void sendGETResponse(int newSockFD, string path) {
 	string header;
+	string body;
+	string response;
 	string endOfResponse = "\r\n\r\n";
 
-	//string fileName = getFileName(path);
-	//cout << "FileName: " << fileName << endl;
+	// send them the default page
+	if (path == "") {
+		cout << "Empty path specified" << endl;
+		response = "HTTP/1.1 200 OK\r\n"
+				"Content-Type: text/html; charset=UTF-8\r\n\r\n"
+				"Default page, path not specified.\r\n\r\n";
 
-	if (access(path.c_str(), F_OK) != 0) {
+		write(newSockFD, response.c_str(), response.length());
+	}
+	// resource doesn't exist
+	else if (access(path.c_str(), F_OK) != 0) {
 		cout << "Resource does not exist" << endl;
-		header = "HTTP/1.1 404 Not Found\r\n"
-				 "Content-Type: text/html; charset=UTF-8\r\n\r\n"
-				 "HTTP 404 Not Found. The resource does not exist.\r\n\r\n";
+		response = "HTTP/1.1 404 Not Found\r\n"
+				"Content-Type: text/html; charset=UTF-8\r\n\r\n"
+				"HTTP 404 Not Found. The resource does not exist.\r\n\r\n";
 
-		write(newSockFD, header.c_str(), header.length());
-	} else if (access(path.c_str(), R_OK) != 0) {
-		cout << "Path exists without read access" << endl;
-		header = "HTTP/1.1 403 Forbidden\r\n"
-				 "Content-Type: text/html; charset=UTF-8\r\n\r\n"
-				 "HTTP 403 Forbidden. The resource exists, but access is forbidden.\r\n\r\n";
+		write(newSockFD, response.c_str(), response.length());
+	}
+	// resource exists, but we don't have read access
+	else if (access(path.c_str(), R_OK) != 0) {
+		cout << "Resource exists without read access" << endl;
+		response = "HTTP/1.1 403 Forbidden\r\n"
+						"Content-Type: text/html; charset=UTF-8\r\n\r\n"
+						"HTTP 403 Forbidden. The resource exists, but access is forbidden.\r\n\r\n";
 
-		write(newSockFD, header.c_str(), header.length());
-	} else if (access(path.c_str(), F_OK) == 0
+		write(newSockFD, response.c_str(), response.length());
+	}
+	// resource exists and we have read access
+	else if (access(path.c_str(), F_OK) == 0
 			&& access(path.c_str(), R_OK) == 0) {
 		cout << "Path exists with read access" << endl;
 		header = "HTTP/1.1 200 OK\r\n\r\n";
-		write(newSockFD, header.c_str(), header.length());
 
-		// open and send the file
+		// open and send the file as the body
 		const int bufferSize = 1024;
 		char buffer[bufferSize] = { 0 };
 
+		int test = 0;
 		FILE *file = fopen(path.c_str(), "r");
 		while (fgets(buffer, bufferSize, file)) {
-			send(newSockFD, buffer, strlen(buffer), 0);
+			test = test + bufferSize;
+			body = body.append(buffer);
 			memset(buffer, 0, bufferSize);
 		}
 
-		write(newSockFD, endOfResponse.c_str(), endOfResponse.length());
+		// form the response
+		response = header.append(body).append(endOfResponse);
+
+		write(newSockFD, response.c_str(), response.length());
 	}
 }
 
-// get the file name from a path
-// path must be specified as "path/to/the/file.txt"
+/**
+ * returns the file name extracted from a path
+ * the path should not include a leading "/"
+ * i.e specify the path as "path/to/whatever.foo"
+ */
 string getFileName(string fromPath) {
-
 	string fileName;
 	size_t pos = fromPath.find_last_of("/");
 

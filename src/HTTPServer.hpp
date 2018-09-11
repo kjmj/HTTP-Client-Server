@@ -7,7 +7,6 @@
 #include<iostream>
 #include <sstream>
 
-
 #include <unistd.h>
 #include <netdb.h>
 
@@ -16,8 +15,8 @@
 #include <arpa/inet.h>
 #include <sys/types.h>
 
-std::string extractPathFromGET(std::string httpGET);
-void sendResponseToGET(int newSockFD, std::string path);
+std::string parsePathFromGETRequest(std::string httpGETRequest);
 std::string getFileName(std::string fromPath);
+void sendGETResponse(int newSockFD, std::string path);
 
 #endif

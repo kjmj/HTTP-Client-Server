@@ -1,7 +1,5 @@
-
 #ifndef HTTPClient_hpp
 #define HTTPClient_hpp
-
 
 #include <cstdio>
 #include <cstdlib>
@@ -15,11 +13,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-
-
-std::string parseAddress(std::string toParse);
-std::string parsePath(std::string toParse);
-std::string formGET(std::string hostName, std::string pathName);
-bool isValidIpAddress(char *ipAddress);
+std::string createGETRequest(std::string hostName, std::string pathName);
+std::string parseAddress(std::string urlToParse);
+std::string parsePath(std::string urlToParse);
 
 #endif
