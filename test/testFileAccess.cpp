@@ -1,5 +1,5 @@
 /*
- ** showip.c -- show IP addresses for a host given on the command line
+ ** testing file access
  */
 
 #include <cstdio>
@@ -12,10 +12,9 @@ using namespace std;
 int main(int argc, char *argv[])
 {
 
-	string fileName = "path/test.txt";
+	string path = "testFolder/test.txt";
 
-	if (access(fileName.c_str(), F_OK) == 0) {
-
+	if (access(path.c_str(), F_OK) == 0) {
 		cout << "file found" << endl;
 	}
 	else {
