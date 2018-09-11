@@ -78,6 +78,7 @@ int main(int argc, char const *argv[]) {
 		cout << "Path: " << path << endl;
 
 		sendGETResponse(newSockFD, path);
+		cout << endl;
 		//memset(buffer, 0, bufferSize);
 
 		close(newSockFD);

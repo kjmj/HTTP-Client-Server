@@ -29,6 +29,10 @@ int main(int argc, char *argv[]) {
 		return (EXIT_FAILURE);
 	}
 
+	// used to compute RTT time
+	struct timeb start, end;
+	int diff;
+
 	// used to build our socket
 	struct addrinfo hints;
 	struct addrinfo *results;
@@ -40,7 +44,7 @@ int main(int argc, char *argv[]) {
 	string pathName = parsePath(serverURL);
 
 	// for receiving info from the server
-	const int bufferSize = 1; // TODO change this to a larger number
+	const int bufferSize = 1014; // TODO change this to a larger number
 	char buffer[bufferSize] = { 0 };
 
 	cout << "Host Name: " << hostName << endl;
@@ -69,10 +73,20 @@ int main(int argc, char *argv[]) {
 		return (EXIT_FAILURE);
 	}
 
+	if (computeRTT) {
+		ftime(&start);
+	}
+
 	// connect to the server
 	if ((connect(sockFD, results->ai_addr, results->ai_addrlen)) < 0) {
 		perror("Error in connect (client)");
 		return (EXIT_FAILURE);
+	}
+
+	if (computeRTT) {
+		ftime(&end);
+		diff = (int) (1000.0 * (end.time - start.time)
+				+ (end.millitm - start.millitm));
 	}
 
 	GET = createGETRequest(hostName, pathName);
@@ -92,6 +106,10 @@ int main(int argc, char *argv[]) {
 
 	// close the socket
 	close(sockFD);
+
+	if (computeRTT) {
+		cout << "RTT (milliseconds): " << diff << endl;
+	}
 
 	return 0;
 }

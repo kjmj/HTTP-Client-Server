@@ -12,6 +12,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/timeb.h>
+
 
 std::string createGETRequest(std::string hostName, std::string pathName);
 std::string parseAddress(std::string urlToParse);
