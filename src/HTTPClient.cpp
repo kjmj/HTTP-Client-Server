@@ -107,11 +107,12 @@ int main(int argc, char *argv[]) {
 			cout << "Buffer Size: " << bufferSize << endl;
 	}
 
+	cout << endl << endl;
 	// close the socket
 	close(sockFD);
 
 	if (computeRTT) {
-		cout << endl << endl << "RTT (milliseconds): " << diff << endl << endl;
+		cout << "RTT (milliseconds): " << diff << endl << endl;
 	}
 
 	return 0;
