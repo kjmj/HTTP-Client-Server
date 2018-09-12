@@ -96,19 +96,22 @@ int main(int argc, char *argv[]) {
 	if (send(sockFD, GET.c_str(), GET.length(), 0) < 0) {
 		perror("Error in send (client)");
 	}
+
 	cout << "Request sent from client" << endl;
 
 	// recieve data until the server closes the connection
 	while (recv(sockFD, buffer, bufferSize, 0) > 0) {
 		fputs(buffer, stdout);
 		memset(buffer, 0, bufferSize);
+		if (bufferSize == 0)
+			cout << "Buffer Size: " << bufferSize << endl;
 	}
 
 	// close the socket
 	close(sockFD);
 
 	if (computeRTT) {
-		cout << "RTT (milliseconds): " << diff << endl;
+		cout << endl << endl << "RTT (milliseconds): " << diff << endl << endl;
 	}
 
 	return 0;
@@ -121,13 +124,9 @@ int main(int argc, char *argv[]) {
  */
 string createGETRequest(string hostName, string pathName) {
 	string GET = "GET /";
-	GET = GET.append(pathName);
-	GET = GET.append(" HTTP/1.1\r\n");
-
-	GET = GET.append("Host: ");
-	GET = GET.append(hostName);
-	GET = GET.append("\r\n");
-	GET = GET.append("\r\n");
+	GET = GET.append(pathName).append(" HTTP/1.1\r\n");
+	GET = GET.append("Host: ").append(hostName).append("\r\n");
+	GET = GET.append("Connection: close\r\n\r\n");
 
 	return GET;
 }

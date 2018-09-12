@@ -22,7 +22,7 @@ int main(int argc, char const *argv[]) {
 	socklen_t clientAddressSize = sizeof(clientAddress);
 
 	// for receiving client requests
-	const int bufferSize = 1024;
+	const int bufferSize = 2048;
 	char buffer[bufferSize] = { 0 };
 
 	// first, load up address structs with getaddrinfo():
@@ -68,7 +68,7 @@ int main(int argc, char const *argv[]) {
 		}
 
 		string GETRequest;
-		if (recv(newSockFD, buffer, bufferSize, 0) < 0) { // TODO make this more robust
+		if (recv(newSockFD, buffer, bufferSize, 0) < 0) {
 			perror("Error in read (server)");
 			exit(EXIT_FAILURE);
 		}
@@ -79,12 +79,10 @@ int main(int argc, char const *argv[]) {
 
 		sendGETResponse(newSockFD, path);
 		cout << endl;
-		//memset(buffer, 0, bufferSize);
 
 		close(newSockFD);
 	}
 
-	// TODO free stuff
 	return 0;
 }
 
@@ -148,7 +146,8 @@ void sendGETResponse(int newSockFD, string path) {
 	// resource exists, but we don't have read access
 	else if (access(path.c_str(), R_OK) != 0) {
 		cout << "Resource exists without read access" << endl;
-		response = "HTTP/1.1 403 Forbidden\r\n"
+		response =
+				"HTTP/1.1 403 Forbidden\r\n"
 						"Content-Type: text/html; charset=UTF-8\r\n\r\n"
 						"HTTP 403 Forbidden. The resource exists, but access is forbidden.\r\n\r\n";
 
