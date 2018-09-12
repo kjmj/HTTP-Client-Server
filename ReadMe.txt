@@ -1,14 +1,16 @@
-*** Project In-Progress ***
-
-This is an implementation of the HTTP 1.1 protocol. It contains client and server code.
+This is an implementation of the HTTP 1.1 protocol. It contains both 
+client and server code.
 
 To build the project:
 make all
 
 To run the project:
-./HTTPClient [-options] server_url port_number
----or---
-./HTTPServer
+./HTTPServer portNumber
 
-Leave HTTPServer running in a terminal window, and try to connect using client
-code in another terminal window.
+---and/or---
+
+./HTTPClient [-options] serverUrl portNumber
+Specify -p as an option to print the Round Trip Time (RTT)
+
+Start HTTPServer in a terminal window. Then, connect to it by
+running HTMLClient in another terminal window/web browser
