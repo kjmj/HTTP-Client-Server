@@ -68,11 +68,17 @@ int main(int argc, char const *argv[]) {
 		}
 
 		string GETRequest;
-		if (recv(newSockFD, buffer, bufferSize, 0) < 0) {
-			perror("Error in read (server)");
-			exit(EXIT_FAILURE);
-		}
-		GETRequest = buffer;
+        while (recv(newSockFD, buffer, bufferSize, 0) > 0) {
+
+            GETRequest.append(buffer);
+
+            // indicated the end of the GET request
+            if(GETRequest.find("\r\n")) {
+                break;
+            }
+
+            memset(buffer, 0, bufferSize);
+        }
 
 		string path = parsePathFromGETRequest(GETRequest);
 		cout << "Path: " << path << endl;

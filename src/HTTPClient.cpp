@@ -108,6 +108,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	cout << endl << endl;
+
 	// close the socket
 	close(sockFD);
 
