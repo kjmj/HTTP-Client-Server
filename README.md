@@ -18,7 +18,7 @@ This is an implementation of the HTTP 1.1 protocol. It contains both client and 
 
 Specify -p as an option to print the Round Trip Time (RTT)
 
-### Alternatively, use your favorite web browser as a client"
+### Alternatively, use your favorite web browser as a client:
 
 `http://localhost:portNumber/index.html`
 
